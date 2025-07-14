@@ -1,0 +1,10 @@
+import express from 'express';
+import Job from '../models/Job.js';
+const router=express.Router();
+router.get('/',async(req,res)=>{res.json(await Job.find().sort({createdAt:-1}));});
+router.get('/stats',async(req,res)=>{const agg=await Job.aggregate([{ $group:{ _id:'$status', count:{ $sum:1 } }}]);
+ const stats=agg.reduce((a,c)=>({...a,[c._id]:c.count}),{});res.json(stats);});
+router.post('/',async(req,res)=>{res.status(201).json(await Job.create(req.body));});
+router.put('/:id',async(req,res)=>{res.json(await Job.findByIdAndUpdate(req.params.id, req.body,{new:true}));});
+router.delete('/:id',async(req,res)=>{await Job.findByIdAndDelete(req.params.id);res.status(204).end();});
+export default router;
